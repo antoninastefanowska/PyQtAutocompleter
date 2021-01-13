@@ -1,0 +1,4 @@
+/venv/
+/application/resources/models/
+__pycache__
+/.idea/
