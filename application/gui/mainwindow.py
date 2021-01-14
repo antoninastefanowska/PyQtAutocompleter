@@ -40,22 +40,22 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def text_area_changed(self):
         text = self.text_area.toPlainText()
-        word_count = len(text.rsplit(' ', 2)) - 1
-        if word_count == 0:
-            if self.buttons_visible:
-                self.hide_buttons()
-        else:
-            if not self.buttons_visible:
-                self.show_buttons()
-            if text[-1] == ' ':
-                tokens = self.model_connector.tokenize(text)
-                if word_count >= 2:
-                    self.background_worker = BackgroundWorker(lambda: self.model_connector.learn(tokens[-1]))
-                    QThreadPool.globalInstance().start(self.background_worker)
+        if text[-1] == ' ':
+            tokens = self.model_connector.tokenize(text)
+            if len(tokens) >= 2:
+                self.background_worker = BackgroundWorker(lambda: self.model_connector.learn(tokens[-1]))
+                QThreadPool.globalInstance().start(self.background_worker)
 
+            if len(tokens) > 0:
+                if not self.buttons_visible:
+                    self.show_buttons()
                 self.predicted = self.model_connector.predict_words(tokens)
                 for i, predicted_word in enumerate(self.predicted):
                     self.buttons[i].setText("F" + str(i + 1) + ": " + predicted_word)
+
+            else:
+                if self.buttons_visible:
+                    self.hide_buttons()
 
     def hide_buttons(self):
         for button in self.buttons:
