@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
 
         self.text_area = None
         self.buttons = []
-        self.buttons_visible = False
+        self.buttons_visible = True
         self.loading_window = None
         self.background_worker = None
 
@@ -40,32 +40,34 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def text_area_changed(self):
         text = self.text_area.toPlainText()
-        if text[-1] == ' ':
+        if len(text) > 0 and text[-1] == ' ':
             tokens = self.model_connector.tokenize(text)
             if len(tokens) >= 2:
                 self.background_worker = BackgroundWorker(lambda: self.model_connector.learn(tokens[-1]))
                 QThreadPool.globalInstance().start(self.background_worker)
 
             if len(tokens) > 0:
-                if not self.buttons_visible:
-                    self.show_buttons()
                 self.predicted = self.model_connector.predict_words(tokens)
                 for i, predicted_word in enumerate(self.predicted):
                     self.buttons[i].setText("F" + str(i + 1) + ": " + predicted_word)
-
+                self.show_buttons()
             else:
-                if self.buttons_visible:
-                    self.hide_buttons()
+                self.hide_buttons()
+
+        elif len(text) == 0:
+            self.hide_buttons()
 
     def hide_buttons(self):
-        for button in self.buttons:
-            button.hide()
-        self.buttons_visible = False
+        if self.buttons_visible:
+            for button in self.buttons:
+                button.hide()
+            self.buttons_visible = False
 
     def show_buttons(self):
-        for button in self.buttons:
-            button.show()
-        self.buttons_visible = True
+        if not self.buttons_visible:
+            for button in self.buttons:
+                button.show()
+            self.buttons_visible = True
 
     def choose_word(self, index):
         chosen_word = self.predicted[index]
